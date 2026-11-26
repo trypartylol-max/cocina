@@ -17,7 +17,7 @@ function doPost(e) {
   let out;
   try {
     const b = JSON.parse(e.postData.contents);
-    const API = { getData, salida, setCantidad, addCompra, addCompras, seAcabo, addInventario, comprado, descartarReceta, addInventarioMany, cocine, usarPronto, guardarMenu, elegirMenu, leerRecibo, reciboOk, avisoOn, avisoOff, avisoAhora, setFlash, retirar, salidaMany, setFlashMany, extender, mover };
+    const API = { getData, salida, setCantidad, addCompra, addCompras, seAcabo, addInventario, comprado, descartarReceta, addInventarioMany, cocine, usarPronto, guardarMenu, elegirMenu, leerRecibo, reciboOk, avisoOn, avisoOff, avisoAhora, setFlash, retirar, salidaMany, setFlashMany, extender, mover, renombrar };
     if (!authOk_(b.jwt)) out = { ok: false, error: 'auth' };
     else if (!Object.prototype.hasOwnProperty.call(API, b.fn)) out = { ok: false, error: 'función no permitida' };
     else out = { ok: true, data: API[b.fn].apply(null, b.args || []) };
@@ -146,6 +146,31 @@ function extender(id, ymd) {
 function salidaMany(list) { (list || []).forEach(a => salida(a[0], a[1], a[2])); return 'ok'; }
 function setFlashMany(ids, on) { ensureCol_('Lista_de_Compras', 'Flash'); (ids || []).forEach(id => set_('Lista_de_Compras', id, { Flash: !!on })); return 'ok'; }
 function setFlash(cid, on) { ensureCol_('Lista_de_Compras', 'Flash'); set_('Lista_de_Compras', cid, { Flash: !!on }); return 'ok'; }
+// Cambiar el nombre de un producto: en casa, en compras y en el catálogo. El nombre viejo queda retirado (no vuelve a compras).
+function renombrar(viejo, nuevo) {
+  nuevo = String(nuevo || '').trim().replace(/\s+/g, ' ');
+  if (!viejo || !nuevo || nuevo === viejo || nuevo.length > 60) throw new Error('Nombre no válido');
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    ensureCol_('Catalogo', 'Retirado');
+    const C = rows_('Catalogo'), h = C.h, old = C.rows.find(c => c.Ingrediente === viejo), nw = C.rows.find(c => c.Ingrediente === nuevo);
+    const cocinado = !old || old.Categoria === 'Cocinado' || old.Tipo === 'Sobra';
+    if (!nw) {
+      if (cocinado) ensureCat_(nuevo);
+      else append_('Catalogo', { Ingrediente: nuevo, Categoria: old.Categoria, Tipo: old.Tipo, Dias_vida: old.Dias_vida, Ubicacion_habitual: old.Ubicacion_habitual, Retirado: false });
+    } else unretire_(nuevo);
+    if (old) C.sh.getRange(old._r, h.indexOf('Retirado') + 1).setValue(true);
+    const catNuevo = rows_('Catalogo').rows.find(c => c.Ingrediente === nuevo).Categoria;
+    rows_('Inventario').rows.filter(o => o.Ingrediente === viejo && !o.Salida).forEach(o => {
+      const x = { Ingrediente: nuevo }; if (o.Tipo === 'Sobra') x.Tipo = 'Perecedero'; if (o.Categoria === 'Cocinado') x.Categoria = catNuevo;
+      set_('Inventario', o.ID, x);
+    });
+    const L = rows_('Lista_de_Compras'), pend = c => !isTrue_(c.Comprado);
+    const dup = L.rows.some(c => c.Ingrediente === nuevo && pend(c)), ni = L.h.indexOf('Ingrediente');
+    L.rows.filter(c => c.Ingrediente === viejo && pend(c)).map(c => c._r).sort((a, b) => b - a).forEach(r => { if (dup) L.sh.deleteRow(r); else L.sh.getRange(r, ni + 1).setValue(nuevo); });
+  } finally { lock.releaseLock(); }
+  return 'ok';
+}
 function mover(id, ubi, cat) {
   if (!['Congelador', 'Nevera', 'Despensa', 'Encimera'].includes(ubi)) throw new Error('Lugar no válido');
   if (!cat || String(cat).length > 40) throw new Error('Categoría no válida');
