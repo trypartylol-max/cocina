@@ -264,6 +264,7 @@ const CLS_RULES = [
   ['chocolate|galleta|dulce|caramelo|chips|snack|\\bbamba\\b|bisli|halv|במבה|ביסלי|שוקולד|עוגיות|חלבה|ופל', 'Dulces y snacks', 'Despensa', '', 'Despensa'],
   ['\\bagua\\b|jugo|zumo|soda|cerveza|vino|caf[eé]|\\bt[eé]\\b|kombucha|refresco|\\bcola\\b|coca|מים|מיץ|בירה|יין|קפה|\\bתה\\b|סודה', 'Bebidas', 'Despensa', '', 'Despensa'],
   ['sobra|cocinad|cocido|guiso|\\bsopa\\b', 'Cocinado', 'Sobra', 2, 'Nevera'],
+  ['edamame|\\bful\\b|(^|\\s)פול($|\\s)|habas? verdes?', 'Verduras', 'Congelado', '', 'Congelador'],
   ['pizza|nuggets|schnitzel congel|papas prefrit|bolitas|burekas|bureka|schnitzel|shnitzel|malawach|jachnun|ziva|בורקס|מלאווח|ג.חנון|שניצל', 'Congelados listos', 'Congelado', '', 'Congelador'],
   ['pollo|\\bres\\b|carne|molida|steak|bife|salm[oó]n|at[uú]n|pescado|brisket|tu[eé]tano|kebab|shawarma|hamburguesa|pavo|cordero|merguez|ternera|camar[oó]n|עוף|בשר|דג|סלמון|טונה|הודו|כבש|שווארמה|קבב|המבורגר', 'Carnes y pescados', 'Perecedero', 2, 'Nevera'],
   ['queso|manchego|amsterdam|parmesan|mozzarella|gouda|brie|feta|ricotta|halloumi|emmental|leche|yog|labneh|leben|lebe|cottage|crema|mantequilla|ghee|huevo|gvina|tzfat|bulgar|גבינה|חלב|יוגורט|לבנה|לבן|קוטג|שמנת|חמאה|ביצ|מעדן|אשל|גיל', 'Lácteos y huevos', 'Perecedero', 7, 'Nevera'],
@@ -275,7 +276,7 @@ const CLS_RULES = [
   ['banana|pl[aá]tano|aguacate|palta|בננה|אבוקדו', 'Frutas', 'Perecedero', 5, 'Despensa'],
   ['manzana|naranja|mandarina|lim[oó]n|lima|uva|fresa|frutilla|mango|pi[nñ]a|ar[aá]ndano|pera|durazno|melocot|nectarin|ciruela|sand[ií]a|mel[oó]n|granada|kiwi|d[aá]til|higo|caqui|persimon|frambuesa|cereza|תפוח|תפוז|קלמנטינה|לימון|ענב|תות|מנגו|אננס|אוכמנ|אגס|אפרסק|נקטרינה|שזיף|אבטיח|מלון|רימון|קיווי|תמר|תאנה|אפרסמון|דובדבן|פטל', 'Frutas', 'Perecedero', 6, 'Nevera'],
   ['tomate|pepino|zucchini|calabac|berenjena|pimiento|piment|zanahoria|lechuga|espinaca|\\bcol\\b|repollo|kale|apio|champi|hongo|seta|chile|jalape|r[uú]cula|br[oó]coli|coliflor|remolacha|ma[ií]z|edamame|ejote|jud[ií]a|arveja|guisante|alcachofa|topinambur|artichoke|esp[aá]rrago|puerro|hinojo|עגבני|מלפפון|קישוא|חציל|פלפל|גזר|חסה|תרד|כרוב|קייל|סלרי|פטריות|סלק|תירס|שעועית ירוקה|אפונה|ארטישוק|אספרגוס|כרשה|שומר', 'Verduras', 'Perecedero', 6, 'Nevera'],
-  ['lenteja|garbanzo|frijol|poroto|alubia|\\bhabas?\\b|עדשים|חומוס יבש|גרגרי חומוס|שעועית|פול', 'Legumbres', 'Despensa', '', 'Despensa'],
+  ['lenteja|garbanzo|frijol|poroto|alubia|\\bhabas?\\b|עדשים|חומוס יבש|גרגרי חומוס|שעועית', 'Legumbres', 'Despensa', '', 'Despensa'],
   ['arroz|quinoa|avena|pasta|fideo|espagueti|macarr|mac and cheese|cusc|cous|bulgur|harina|panko|ptitim|cereal|granola|polenta|אורז|קינואה|שיבולת|פסטה|ספגטי|קוסקוס|בורגול|קמח|פתיתים|דגני|גרנולה', 'Granos y pastas', 'Despensa', '', 'Despensa']
 ];
 function classify(name) {

@@ -23,3 +23,6 @@
 - ✎ en la ficha del producto (en casa) y tocando el nombre en Compras. Cambia el nombre en casa, en compras y en el catálogo; el nombre viejo queda retirado y no vuelve a compras.
 - Si el producto era una sobra o "Cocinado" (p. ej. "Brisket cocinado" → "Brisket"), pasa a producto normal: al acabarse vuelve a compras con el nombre nuevo.
 - Backend: `renombrar(viejo, nuevo)` (versión 26 de la implementación).
+
+## 2026-11-26 — Ful como el edamame
+- Ful / פול / habas verdes se clasifican como Verduras, congelado, en el Congelador (igual que el edamame). פול sale de Legumbres. Backend versión 27.
