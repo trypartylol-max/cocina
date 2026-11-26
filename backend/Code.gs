@@ -17,7 +17,7 @@ function doPost(e) {
   let out;
   try {
     const b = JSON.parse(e.postData.contents);
-    const API = { getData, salida, setCantidad, addCompra, addCompras, seAcabo, addInventario, comprado, descartarReceta, addInventarioMany, cocine, usarPronto, guardarMenu, elegirMenu, leerRecibo, reciboOk, avisoOn, avisoOff, avisoAhora, setFlash, retirar, salidaMany, setFlashMany, extender };
+    const API = { getData, salida, setCantidad, addCompra, addCompras, seAcabo, addInventario, comprado, descartarReceta, addInventarioMany, cocine, usarPronto, guardarMenu, elegirMenu, leerRecibo, reciboOk, avisoOn, avisoOff, avisoAhora, setFlash, retirar, salidaMany, setFlashMany, extender, mover };
     if (!authOk_(b.jwt)) out = { ok: false, error: 'auth' };
     else if (!Object.prototype.hasOwnProperty.call(API, b.fn)) out = { ok: false, error: 'función no permitida' };
     else out = { ok: true, data: API[b.fn].apply(null, b.args || []) };
@@ -39,6 +39,12 @@ function authOk_(jwt) {
 
 // Ejecuta esta una vez desde el editor para dar el permiso nuevo (conexión a Supabase).
 function autorizar() { UrlFetchApp.fetch(SB_URL + '/auth/v1/health', { headers: { apikey: SB_ANON }, muteHttpExceptions: true }); }
+// Ejecuta esta desde el editor si el recibo dice que falta permiso de Drive: pide y prueba los permisos de Drive/Docs.
+function autorizarDrive() {
+  ScriptApp.requireScopes(ScriptApp.AuthMode.FULL, ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/documents']);
+  Drive.Files.list({ pageSize: 1 });
+  Logger.log('Drive OK');
+}
 // ===== fin API =====
 
 
@@ -140,6 +146,16 @@ function extender(id, ymd) {
 function salidaMany(list) { (list || []).forEach(a => salida(a[0], a[1], a[2])); return 'ok'; }
 function setFlashMany(ids, on) { ensureCol_('Lista_de_Compras', 'Flash'); (ids || []).forEach(id => set_('Lista_de_Compras', id, { Flash: !!on })); return 'ok'; }
 function setFlash(cid, on) { ensureCol_('Lista_de_Compras', 'Flash'); set_('Lista_de_Compras', cid, { Flash: !!on }); return 'ok'; }
+function mover(id, ubi, cat) {
+  if (!['Congelador', 'Nevera', 'Despensa', 'Encimera'].includes(ubi)) throw new Error('Lugar no válido');
+  if (!cat || String(cat).length > 40) throw new Error('Categoría no válida');
+  const o = rows_('Inventario').rows.find(x => x.ID === id); if (!o) throw new Error('No encontrado');
+  set_('Inventario', id, { Ubicacion: ubi, Categoria: cat });
+  ensureCat_(o.Ingrediente);
+  const d = rows_('Catalogo'), c = d.rows.find(x => x.Ingrediente === o.Ingrediente);
+  if (c) { const h = d.h; d.sh.getRange(c._r, h.indexOf('Ubicacion_habitual') + 1).setValue(ubi); d.sh.getRange(c._r, h.indexOf('Categoria') + 1).setValue(cat); }
+  return 'ok';
+}
 function setCantidad(id, cant) {
   if (!['Lleno', 'Medio', 'Poco'].includes(cant)) throw new Error('Cantidad no válida');
   set_('Inventario', id, { Cantidad: cant }); return 'ok';
@@ -321,7 +337,10 @@ function elegirMenu(id, nombre) { set_('Menu_y_Opciones', id, { Elegida: nombre 
 // Recibo: OCR con Google Drive (hebreo) y alta en inventario
 function leerRecibo(b64, mime) {
   const blob = Utilities.newBlob(Utilities.base64Decode(b64), mime || 'image/jpeg', 'recibo.jpg');
-  const f = Drive.Files.create({ name: 'cocina-recibo-ocr', mimeType: 'application/vnd.google-apps.document' }, blob, { ocrLanguage: 'he' });
+  const meta = { name: 'cocina-recibo-ocr', mimeType: 'application/vnd.google-apps.document' };
+  let f;
+  try { f = Drive.Files.create(meta, blob, { ocrLanguage: 'iw' }); } // Google usa 'iw' para hebreo
+  catch (e) { f = Drive.Files.create(meta, blob); }
   try { return DocumentApp.openById(f.id).getBody().getText(); } finally { try { Drive.Files.remove(f.id); } catch (e) {} }
 }
 function reciboOk(list, cids) {
